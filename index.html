@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello World</title>
+
+    <!-- viewer distro -->
+    <script src="dist/custom-modeler.bundled.js"></script>
+
+    <!-- needed for this example only -->
+    <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
+	  <link rel="stylesheet" href="vendor/bpmn-js/assets/diagram-js.css" /> 
+	  <link rel="stylesheet" href="vendor/bpmn-js/assets/bpmn-font/css/bpmn-embedded.css" /> 
+	  <link rel="stylesheet" href="vendor/diagram-js-minimap/assets/diagram-js-minimap.css" /> 
+	  <link rel="stylesheet" href="css/bpmn-js-properties-panel.css" /> 
+	  <link rel="stylesheet" href="css/app.css" />
+    <!-- example styles -->
+    <style>
+      html, body, #canvas {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+
+      .diagram-note {
+        background-color: rgba(66, 180, 21, 0.7);
+        color: White;
+        border-radius: 5px;
+        font-family: Arial;
+        font-size: 12px;
+        padding: 5px;
+        min-height: 16px;
+        width: 50px;
+        text-align: center;
+      }
+
+      .needs-discussion:not(.djs-connection) .djs-visual > :nth-child(1) {
+        stroke: rgba(66, 180, 21, 0.7) !important; /* color elements as red */
+      }
+    </style>
+  </head>
+  <body>
+  <div class="content" id="js-drop-zone">
+
+    <div class="message error">
+      <div class="note">
+        <p>Ooops, we could not display the BPMN 2.0 diagram.</p>
+
+        <div class="details">
+          <span>cause of the problem</span>
+          <pre></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="canvas" id="js-canvas"></div>
+	<div id="js-properties-panel"></div>
+  </div>
+
+    <script>
+      var container = $('#js-drop-zone');
+	  var canvas1 = $('#js-canvas');
+      var diagramUrl = 'https://cdn.staticaly.com/gh/bpmn-io/bpmn-js-examples/dfceecba/starter/diagram.bpmn';
+
+      // viewer instance
+      var bpmnModeler = new CustomBpmnJS({
+        container:canvas1,
+		  propertiesPanel: {
+				parent: '#js-properties-panel'
+			},
+      });
+
+
+      /**
+       * Open diagram in our viewer instance.
+       *
+       * @param {String} bpmnXML diagram to display
+       */
+      async function openDiagram(bpmnXML) {
+
+        // import diagram
+        try {
+
+          await bpmnModeler.importXML(bpmnXML);
+
+          // access viewer components
+          var canvas = bpmnModeler.get('canvas');
+          var overlays = bpmnModeler.get('overlays');
+		  container.removeClass('with-error').addClass('with-diagram');
+		  bpmnModeler.get('minimap').open();
+          // zoom to fit full viewport
+          canvas.zoom('fit-viewport');
+
+          // attach an overlay to a node
+          overlays.add('SCAN_OK', 'note', {
+            position: {
+              bottom: 0,
+              right: 0
+            },
+            html: '<div class="diagram-note">Mixed up the labels?</div>'
+          });
+
+          // add marker
+          canvas.addMarker('SCAN_OK', 'needs-discussion');
+        } catch (err) {
+
+          return console.error('could not import BPMN 2.0 diagram', err);
+        }
+      }
+
+
+      // load external diagram file via AJAX and open it
+      $.get(diagramUrl, openDiagram, 'text');
+    </script>
+  </body>
+</html>
